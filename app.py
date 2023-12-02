@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, url_for, request, Blueprint
+from flask import Flask, render_template, redirect, url_for, request, Blueprint,  jsonify
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user
 import sqlite3
 import threading
@@ -112,6 +112,33 @@ def adm():
 @app.route('/')
 def index():
     return 'Olá, usuário '
+
+@app.route("/users", methods=["GET"])
+def get_users():
+    # Abre uma conexão ao banco de dados
+    conn = sqlite3.connect("database.db")
+
+    # Cria uma consulta para selecionar todos os usuários
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM users")
+
+    # Obtém os resultados da consulta
+    users = cursor.fetchall()
+
+    # Fecha a conexão ao banco de dados
+    conn.close()
+
+    # Converte os resultados em um objeto JSON
+    users = [
+        {
+            "id": row[0],
+            "username": row[1],
+            "password": row[2]
+        }
+        for row in users
+    ]
+
+    return jsonify(users)
 
 
 if __name__ == '__main__':
