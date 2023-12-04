@@ -69,17 +69,14 @@ def login_re():
     return render_template('login.html')
 
 
-@app.route('/login', methods=['GET', 'POST'])
+@app.route('/login4', methods=['GET', 'POST'])
 
-def login():
-    # Pega o objeto cursor do armazenamento local de threads
-    cursor = thread_local_storage.cursor
+def login4():
+     # Abre uma conexão ao banco de dados
+    conn = sqlite3.connect("database.db")
 
-    # Se o objeto cursor não existir, crie um novo
-    if cursor is None:
-        cursor = conn.cursor()
-        thread_local_storage.cursor = cursor
-
+    # Cria uma consulta para selecionar todos os usuários
+    cursor = conn.cursor()
     # Use o objeto cursor para executar sua consulta SQL
     username = request.form['username']
     password = request.form['password']
@@ -111,7 +108,7 @@ def adm():
 # pagina inicial
 @app.route('/')
 def index():
-    return 'Olá, usuário '
+    return render_template('login.html')
 
 @app.route("/users", methods=["GET"])
 def get_users():
@@ -139,6 +136,30 @@ def get_users():
     ]
 
     return jsonify(users)
+
+
+
+@app.route('/login5', methods=['GET', 'POST'])
+def login5():
+    # Abre uma conexão ao banco de dados
+    conn = sqlite3.connect("database.db")
+    cursor = conn.cursor()
+
+    # Obtém o nome de usuário e senha do formulário de login
+    username = request.form['username']
+    password = request.form['password']
+
+    # Executa uma consulta SQL para selecionar o usuário com o nome de usuário e senha fornecidos
+    cursor.execute('SELECT * FROM users WHERE username = ? AND password = ?', (username, password))
+    user = cursor.fetchone()
+
+    # Se um usuário foi encontrado, cria um objeto User com base na tupla retornada e faz o login do usuário
+    if user:
+        user_obj = User(user[0])  # Cria um objeto User com base na tupla retornada
+        login_user(user_obj)  # Faz o login do usuário
+        return redirect(url_for('index'))  # Redireciona para a página inicial
+    # Se nenhum usuário foi encontrado, exibe o formulário de login novamente
+    return render_template('login.html')
 
 
 if __name__ == '__main__':
